@@ -1,23 +1,44 @@
 package br.com.diego.microservices.loja.service;
 
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import br.com.diego.microservices.loja.DTO.CompraDTO;
 import br.com.diego.microservices.loja.DTO.InfoFornecedorDTO;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import br.com.diego.microservices.loja.DTO.InfoPedidoDTO;
+import br.com.diego.microservices.loja.client.fornecedorClient;
+import br.com.diego.microservices.loja.model.Compra;
+import jdk.internal.org.jline.utils.Log;
+
+import org.slf4j.LoggerFactory;
+
 
 @Service
 public class CompraService {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(CompraService.class);
 
-    public void realizaCompra(CompraDTO compra){
-
-        RestTemplate client = new RestTemplate();
-        ResponseEntity<InfoFornecedorDTO> exchange = client.exchange("http://fornecedor/info/" + compra.getEndereco().getEstado(),
-                                                                        HttpMethod.GET,
-                                                                        null,
-                                                                        InfoFornecedorDTO.class);
-
-        System.out.println(exchange.getBody().getEndereco());
+	@Autowired
+	private fornecedorClient fornecedorClient;
+	
+    public Compra realizaCompra(CompraDTO compra){
+    	
+    	final String estado = compra.getEndereco().getEstado();
+    	
+    	LOG.info("Buscando informações do fornecedor de {} ", estado);
+    	InfoFornecedorDTO info = fornecedorClient.getInfoPorEstado(estado);
+    	    	
+    	LOG.info("realizando um pedido");
+    	InfoPedidoDTO pedido = fornecedorClient.realizaPedido(compra.getItens());
+    	
+        System.out.println(info.getEndereco());
+        
+        Compra compraSalva = new Compra();
+        compraSalva.setPedidoId(pedido.getId());
+        compraSalva.setTempoDePreaparo(pedido.getTempoDePreparo());
+        compraSalva.setEnderecoDestino(compra.getEndereco().toString());
+        
+        return compraSalva;
     }
 }

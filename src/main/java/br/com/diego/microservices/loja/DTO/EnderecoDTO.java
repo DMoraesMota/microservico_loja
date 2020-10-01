@@ -5,7 +5,7 @@ public class EnderecoDTO {
     private String rua;
     private Integer numero;
     private String estado;
-
+    
     public String getRua() {
         return rua;
     }
@@ -30,8 +30,9 @@ public class EnderecoDTO {
         this.estado = estado;
     }
 
-
-
-
+	@Override
+	public String toString() {
+		return "EnderecoDTO [rua=" + rua + ", numero=" + numero + ", estado=" + estado + "]";
+	}
 
 }
